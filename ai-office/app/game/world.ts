@@ -1,7 +1,7 @@
 // 오피스 월드 맵
 // 타일 그리드 기반. 0 = 걸을 수 있음, 1 = 막힘(벽·가구)
 
-import { DEPARTMENTS } from "../../company.config";
+import { DEPARTMENTS, STAFF_LIST } from "../../company.config";
 
 export const TILE = 18;
 export const COLS = 74;
@@ -47,11 +47,19 @@ const DEPT_LAYOUT: { id: string; name: string; short: string; icon: string }[] =
   (d) => ({ id: d.id, name: d.name, short: d.short, icon: d.icon }),
 );
 
+/** 책상 n개를 방 안쪽(가로 폭 15칸, 중심 7칸)에 4칸 간격으로 균등 배치 */
+function deskOffsets(count: number): number[] {
+  const step = 4;
+  const start = 7 - ((count - 1) * step) / 2;
+  return Array.from({ length: count }, (_, i) => start + i * step);
+}
+
 function deptRoom(index: number): Room {
   const meta = DEPT_LAYOUT[index];
   const x = COL_X[index % 4];
   const y = ROW_Y[Math.floor(index / 4)];
-  const desks: Desk[] = [3, 7, 11].map((dx) => ({
+  const staffCount = STAFF_LIST.filter((s) => s.dept === meta.id).length;
+  const desks: Desk[] = deskOffsets(staffCount).map((dx) => ({
     deskX: x + dx - 1,
     deskY: y + 5,
     seat: { x: x + dx, y: y + 6 },
