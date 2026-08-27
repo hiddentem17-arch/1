@@ -137,7 +137,7 @@ const PHASES = [
   "대본 작성",
   "릴스·캐러셀 제작",
   "Notion 저장",
-  "김비서 브리핑",
+  "비서실 브리핑",
   "업무 종료",
 ];
 
@@ -152,18 +152,18 @@ const BLOCK_REASON: Record<string, string> = {
 
 /** 지시창에서 부서를 찾을 때 쓰는 키워드 — 구체적인 것부터 검사한다 */
 const DEPT_KEYWORDS: [string, string[]][] = [
-  ["qa", ["qa", "큐아", "검수", "금칙어", "윤규아"]],
-  ["brand", ["인텔", "페르소나", "박보라", "브랜드 인텔"]],
-  ["strategy1", ["전략 1", "전략1", "기획", "아이디어", "최아름", "톱3", "top 3"]],
-  ["strategy2", ["전략 2", "전략2", "대본", "한도빈", "스크립트"]],
-  ["research", ["시장조사", "리서치", "조사팀", "뉴스", "김서연"]],
-  ["reels", ["릴스", "영상", "편집", "송리원"]],
-  ["carousel", ["캐러셀", "카드뉴스", "canva", "칸바", "이가림"]],
-  ["partner", ["파트너", "협찬", "광고 제안", "메일", "정파랑"]],
-  ["finance", ["재무", "정산", "입금", "돈", "오재민"]],
-  ["review", ["성과", "리뷰", "지표", "강성아"]],
-  ["ops", ["자동화", "운영팀", "스케줄", "안도현"]],
-  ["secretary", ["비서", "김세리", "비서실"]],
+  ["qa", ["qa", "큐아", "검수", "금칙어", "최도경"]],
+  ["brand", ["인텔", "페르소나", "백서연", "브랜드 인텔"]],
+  ["strategy1", ["전략 1", "전략1", "기획", "아이디어", "유단비", "톱3", "top 3"]],
+  ["strategy2", ["전략 2", "전략2", "대본", "정해온", "스크립트"]],
+  ["research", ["시장조사", "리서치", "조사팀", "뉴스", "강지원"]],
+  ["reels", ["릴스", "영상", "편집", "남준서"]],
+  ["carousel", ["캐러셀", "카드뉴스", "canva", "칸바", "도경민"]],
+  ["partner", ["파트너", "협찬", "광고 제안", "메일", "윤태오"]],
+  ["finance", ["재무", "정산", "입금", "돈", "노한슬"]],
+  ["review", ["성과", "리뷰", "지표", "오세인"]],
+  ["ops", ["자동화", "운영팀", "스케줄", "설로하"]],
+  ["secretary", ["비서", "사공보람", "비서실"]],
 ];
 
 function rand<T>(arr: T[]): T {
@@ -253,7 +253,7 @@ export class Company {
       this.deptStatus[room.id] = BLOCKED_DEPTS.has(room.id) ? "연동 대기" : "대기";
     }
     this.pushLog("🎀", "대표실 준비 완료. 출근 버튼을 기다리는 중이에요.", "lav");
-    this.pushChat("staff", "김세리", "대표님, 비서실장 김세리입니다. 궁금한 건 여기에 바로 물어보세요.");
+    this.pushChat("staff", this.secretaryName, `대표님, 비서실장 ${this.secretaryName}입니다. 궁금한 건 여기에 바로 물어보세요.`);
   }
 
   private spawn(seed: StaffSeed, home: Pt, at: Pt) {
@@ -502,7 +502,7 @@ export class Company {
     yield () => this.deptStatus.ops === "완료" && this.deptStatus.review === "완료";
     this.pushLog("📦", "Notion 결과물 창고에 오늘 산출물 2건 저장 완료", "mint");
 
-    // ⑫ 김비서 브리핑
+    // ⑫ 비서실 브리핑
     this.phaseIndex = 11;
     this.lock([seri]);
     this.stand(seri);
@@ -516,7 +516,7 @@ export class Company {
     this.briefingReady = true;
     this.onBriefing?.();
     const stats = this.snapshot().stats;
-    this.pushLog("📋", `김비서 최종 브리핑 완료 — 완료 ${stats.done}팀 · 연동 대기 ${stats.blocked}팀`, "pink");
+    this.pushLog("📋", `${this.secretaryName} 최종 브리핑 완료 — 완료 ${stats.done}팀 · 연동 대기 ${stats.blocked}팀`, "pink");
     yield 3;
     this.stand(seri);
     this.sitAtDesk(seri);
@@ -670,6 +670,11 @@ export class Company {
     if (this.chat.length > 60) this.chat.shift();
   }
 
+  /** 비서실장 이름 — company.config.ts STAFF_LIST 기준으로 항상 최신값 */
+  private get secretaryName(): string {
+    return this.agentById.get("secretary-lead")?.name ?? "비서실장";
+  }
+
   /** 지시창에 들어온 한 줄을 해석해 보고하거나 실제로 지시를 실행한다 */
   command(raw: string) {
     const text = raw.trim();
@@ -693,7 +698,7 @@ export class Company {
     if (/브리핑|보고하러|올라와/.test(text)) return this.briefNow();
     if (/승인|오케이|고고|진행해/.test(text) && this.approvalPending) {
       this.approve();
-      this.pushChat("staff", "김세리", "승인 접수했습니다. 제작팀에 바로 넘길게요.");
+      this.pushChat("staff", this.secretaryName, "승인 접수했습니다. 제작팀에 바로 넘길게요.");
       return;
     }
     if (/수고|칭찬|잘했|좋아요|고마/.test(text)) return this.cheer();
@@ -704,7 +709,7 @@ export class Company {
 
     this.pushChat(
       "staff",
-      "김세리",
+      this.secretaryName,
       "이렇게 물어보시면 제일 빨라요 — “현황 보고” / “왜 늦어져?” / “시장조사팀 뭐해?” / “회의 소집” / “집중 모드” / “지금 브리핑”.",
     );
   }
@@ -712,7 +717,7 @@ export class Company {
   // ── 보고 ────────────────────────────────────────────────
   private reportStatus() {
     if (!this.running && !this.dayComplete) {
-      this.pushChat("staff", "김세리", "아직 출근 전이에요. ‘오늘 업무 시작하기’를 눌러주시면 전원 출근합니다.");
+      this.pushChat("staff", this.secretaryName, "아직 출근 전이에요. ‘오늘 업무 시작하기’를 눌러주시면 전원 출근합니다.");
       return;
     }
     const working = this.workingDepts();
@@ -735,7 +740,7 @@ export class Company {
     const next = PHASES[this.phaseIndex + 1];
     if (next && !this.dayComplete) lines.push(`다음 순서는 ‘${next}’입니다.`);
 
-    this.pushChat("staff", "김세리", lines.join("\n"));
+    this.pushChat("staff", this.secretaryName, lines.join("\n"));
     this.speakSecretary("현황 정리해서 올렸어요.");
   }
 
@@ -744,8 +749,12 @@ export class Company {
 
     if (this.approvalPending) {
       const waited = Math.max(1, Math.round(this.elapsed - (this.approvalSince ?? this.elapsed)));
+      const approverNames = ["strategy1-lead", "strategy2-lead", "secretary-lead"]
+        .map((id) => this.agentById.get(id)?.name)
+        .filter(Boolean)
+        .join("·");
       lines.push(
-        `원인은 하나예요 — 대표님 결재 대기입니다. 회의실에서 최아름·한도빈·김세리가 ${waited}초째 기다리고 있어요.`,
+        `원인은 하나예요 — 대표님 결재 대기입니다. 회의실에서 ${approverNames}가 ${waited}초째 기다리고 있어요.`,
       );
       lines.push("승인만 눌러주시면 바로 대본 작성으로 넘어갑니다.");
     }
@@ -777,7 +786,7 @@ export class Company {
         this.running ? "지연 없습니다. 대기 중인 병목도 없어요." : "아직 출근 전이라 진행할 업무가 없어요.",
       );
     }
-    this.pushChat("staff", "김세리", lines.join("\n"));
+    this.pushChat("staff", this.secretaryName, lines.join("\n"));
     this.speakSecretary("지연 사유 보고드렸어요.");
   }
 
@@ -816,10 +825,10 @@ export class Company {
     this.focusMode = on;
     if (on) {
       this.recallAll(true);
-      this.pushChat("staff", "김세리", "집중 모드 켰습니다. 커피·잡담 없이 전원 자리에서 업무만 봅니다.");
+      this.pushChat("staff", this.secretaryName, "집중 모드 켰습니다. 커피·잡담 없이 전원 자리에서 업무만 봅니다.");
       this.pushLog("🎤", "대표 지시: 집중 모드 ON — 자율 휴식 중단", "yellow");
     } else {
-      this.pushChat("staff", "김세리", "집중 모드 껐어요. 다들 숨 좀 돌리겠습니다 ☕");
+      this.pushChat("staff", this.secretaryName, "집중 모드 껐어요. 다들 숨 좀 돌리겠습니다 ☕");
       this.pushLog("🎤", "대표 지시: 집중 모드 OFF", "yellow");
     }
   }
@@ -836,7 +845,7 @@ export class Company {
       moved += 1;
     }
     if (!quiet) {
-      this.pushChat("staff", "김세리", moved ? `${moved}명 자리로 복귀시켰습니다.` : "다들 이미 자리에 있어요.");
+      this.pushChat("staff", this.secretaryName, moved ? `${moved}명 자리로 복귀시켰습니다.` : "다들 이미 자리에 있어요.");
       this.pushLog("🎤", `대표 지시: 전원 자리 복귀 (${moved}명 이동)`, "yellow");
     }
   }
@@ -853,7 +862,7 @@ export class Company {
     this.speed = Math.min(4, this.speed * 2);
     this.pushChat(
       "staff",
-      "김세리",
+      this.secretaryName,
       count ? `작업 ${count}건 속도 올렸고 배속도 ${this.speed}x로 바꿨습니다.` : `지금 돌아가는 작업이 없어서 배속만 ${this.speed}x로 올렸어요.`,
     );
     this.pushLog("🎤", `대표 지시: 속도 올리기 (${this.speed}x)`, "yellow");
@@ -864,13 +873,13 @@ export class Company {
       if (agent.rank === "ceo" || agent.status === "출근 전") continue;
       this.say(agent, rand(["감사합니다 🩷", "힘나요!", "더 잘할게요 ✨"]), 3.2);
     }
-    this.pushChat("staff", "김세리", "대표님 한마디에 사무실 분위기가 확 살았어요 🩷");
+    this.pushChat("staff", this.secretaryName, "대표님 한마디에 사무실 분위기가 확 살았어요 🩷");
     this.pushLog("🎀", "대표 격려 — 전 직원 사기 상승", "pink");
   }
 
   private convene() {
     if (this.side.gen) {
-      this.pushChat("staff", "김세리", "앞선 지시를 아직 처리 중이에요. 끝나면 바로 잡겠습니다.");
+      this.pushChat("staff", this.secretaryName, "앞선 지시를 아직 처리 중이에요. 끝나면 바로 잡겠습니다.");
       return;
     }
     const ids = Object.keys(this.deptStatus)
@@ -878,10 +887,10 @@ export class Company {
       .filter((id) => !this.locked.has(id) && this.agentById.get(id)?.status !== "출근 전")
       .slice(0, 6);
     if (!ids.length) {
-      this.pushChat("staff", "김세리", "지금은 다들 진행 중인 업무가 있어 소집이 어려워요. 잠시 뒤 다시 불러주세요.");
+      this.pushChat("staff", this.secretaryName, "지금은 다들 진행 중인 업무가 있어 소집이 어려워요. 잠시 뒤 다시 불러주세요.");
       return;
     }
-    this.pushChat("staff", "김세리", `${ids.length}명 회의실로 소집했습니다. 각자 한 줄씩 보고할게요.`);
+    this.pushChat("staff", this.secretaryName, `${ids.length}명 회의실로 소집했습니다. 각자 한 줄씩 보고할게요.`);
     this.pushLog("🎤", `대표 지시: 긴급 회의 소집 (${ids.length}명)`, "yellow");
     this.spotlightRoom("meeting", 24);
     this.side.gen = this.conveneScene(ids);
@@ -902,17 +911,17 @@ export class Company {
       return [id, text] as [string, string];
     });
     yield* this.meeting("대표 긴급 소집 · 전 부서 한 줄 보고", ids, lines);
-    this.pushChat("staff", "김세리", "회의 마쳤습니다. 전원 자리로 복귀했어요.");
+    this.pushChat("staff", this.secretaryName, "회의 마쳤습니다. 전원 자리로 복귀했어요.");
   }
 
   private briefNow() {
     if (this.side.gen) {
-      this.pushChat("staff", "김세리", "앞선 지시를 처리 중이에요. 끝나고 바로 올라가겠습니다.");
+      this.pushChat("staff", this.secretaryName, "앞선 지시를 처리 중이에요. 끝나고 바로 올라가겠습니다.");
       return;
     }
     const seri = this.agentById.get("secretary-lead")!;
     if (this.locked.has(seri.id)) {
-      this.pushChat("staff", "김세리", "지금 다른 일정에 묶여 있어요. 마치는 대로 대표실로 가겠습니다.");
+      this.pushChat("staff", this.secretaryName, "지금 다른 일정에 묶여 있어요. 마치는 대로 대표실로 가겠습니다.");
       return;
     }
     this.pushLog("🎤", "대표 지시: 즉시 브리핑 요청", "yellow");

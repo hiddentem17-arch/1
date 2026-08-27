@@ -17,6 +17,8 @@ import { COMPANY, STORAGE_LINK } from "../company.config";
 
 type View = "live" | "dashboard";
 
+const SECRETARY_NAME = DEPT_LEAD.secretary?.name ?? "비서실장";
+
 const statusClass: Record<DeptStatus, string> = {
   "완료": "done",
   "진행 중": "working",
@@ -122,7 +124,7 @@ export default function Home() {
           `완료 보고 발행 — ${parts.join(" / ")}`,
           result.notion.ok && result.discord.ok ? "mint" : "lav",
         );
-        engine.pushChat("staff", "김세리", `보고서 발행 결과입니다.\n· ${parts.join("\n· ")}`);
+        engine.pushChat("staff", SECRETARY_NAME, `보고서 발행 결과입니다.\n· ${parts.join("\n· ")}`);
         if (!auto) showToast(result.notion.ok || result.discord.ok ? "보고서를 발행했어요" : "발행 실패 — 연동 설정 필요");
       } catch (error) {
         const message = error instanceof Error ? error.message : String(error);
@@ -402,7 +404,10 @@ function LiveView({
                     <span className="score blink">결재 대기</span>
                   </div>
                   <h3>AI 회사가 매일 아침 나 대신 출근한다면?</h3>
-                  <p>회의실에서 최아름·한도빈·김세리가 대표님을 기다리고 있어요.</p>
+                  <p>
+                    회의실에서 {DEPT_LEAD.strategy1?.name}·{DEPT_LEAD.strategy2?.name}·{SECRETARY_NAME}가 대표님을
+                    기다리고 있어요.
+                  </p>
                   <div className="reason-list">
                     <span>① 실제 구축 과정</span>
                     <span>② 저장할 운영 구조</span>
@@ -636,16 +641,16 @@ function BriefingModal({ snap, onClose }: { snap: Snapshot; onClose: () => void 
         onClick={(event) => event.stopPropagation()}
         role="dialog"
         aria-modal="true"
-        aria-label="김비서 브리핑"
+        aria-label="비서실 브리핑"
       >
         <div className="win-bar">
-          <span>📋 kim_secretary.brief</span>
+          <span>📋 secretary.brief</span>
           <button className="window-close" onClick={onClose}>
             ✕
           </button>
         </div>
         <div className="win-body">
-          <p className="brief-date">{snap.clock} · 김세리 비서실장 최종 브리핑</p>
+          <p className="brief-date">{snap.clock} · {SECRETARY_NAME} 비서실장 최종 브리핑</p>
           <h3>대표님, 오늘 회사 업무가 정리됐어요.</h3>
           <ul>
             <li>
@@ -912,7 +917,7 @@ function DashboardView({
 
             <section className="win secretary">
               <div className="win-bar">
-                <span>📋 kim_secretary.brief</span>
+                <span>📋 secretary.brief</span>
                 <span className="window-controls">—　▢　✕</span>
               </div>
               <div className="win-body">
