@@ -1,0 +1,1199 @@
+<title>히든템 오피스 평면도</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Big+Shoulders+Display:wght@600;700;800&family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap">
+<style>
+  :root{
+    --paper: #f2ede0;
+    --paper-surface: #faf7ef;
+    --paper-surface-2: #ece5d3;
+    --ink: #232c42;
+    --ink-soft: #5c6684;
+    --ink-faint: #232c4233;
+    --accent: #b8452f;
+    --accent-soft: #b8452f22;
+    --wall: #232c42;
+    --door: #b8452f;
+    --line: #232c4224;
+    --shadow: 0 1px 0 rgba(35,44,66,.06);
+    --btn-bg: #232c42;
+    --btn-fg: #f2ede0;
+  }
+  @media (prefers-color-scheme: dark){
+    :root:not([data-theme="light"]){
+      --paper: #0d2748;
+      --paper-surface: #123258;
+      --paper-surface-2: #0a2140;
+      --ink: #eaf1ff;
+      --ink-soft: #a8bede;
+      --ink-faint: #eaf1ff33;
+      --accent: #ffb84d;
+      --accent-soft: #ffb84d22;
+      --wall: #eaf1ff;
+      --door: #ffb84d;
+      --line: #eaf1ff22;
+      --shadow: 0 1px 0 rgba(0,0,0,.3);
+      --btn-bg: #eaf1ff;
+      --btn-fg: #0d2748;
+    }
+  }
+  :root[data-theme="dark"]{
+    --paper: #0d2748;
+    --paper-surface: #123258;
+    --paper-surface-2: #0a2140;
+    --ink: #eaf1ff;
+    --ink-soft: #a8bede;
+    --ink-faint: #eaf1ff33;
+    --accent: #ffb84d;
+    --accent-soft: #ffb84d22;
+    --wall: #eaf1ff;
+    --door: #ffb84d;
+    --line: #eaf1ff22;
+    --shadow: 0 1px 0 rgba(0,0,0,.3);
+    --btn-bg: #eaf1ff;
+    --btn-fg: #0d2748;
+  }
+
+  *{box-sizing:border-box;}
+  body{
+    margin:0;
+    background:var(--paper);
+    color:var(--ink);
+    font-family:"IBM Plex Sans KR","IBM Plex Sans",system-ui,sans-serif;
+    -webkit-font-smoothing:antialiased;
+  }
+  .sheet{ max-width:1180px; margin:0 auto; padding:28px 20px 60px; }
+
+  /* ---- title block ---- */
+  .titleblock{
+    border:1.5px solid var(--ink);
+    background:var(--paper-surface);
+    padding:18px 22px;
+    display:flex; flex-wrap:wrap; align-items:flex-end; justify-content:space-between; gap:16px;
+    box-shadow:var(--shadow);
+  }
+  .titleblock h1{
+    font-family:"Big Shoulders Display",sans-serif;
+    font-weight:800; font-size:clamp(2rem,5vw,3.1rem);
+    letter-spacing:.01em; line-height:.92; margin:0; text-wrap:balance;
+  }
+  .titleblock .sub{ font-size:.95rem; color:var(--ink-soft); margin-top:6px; font-weight:500; }
+  .meta{
+    display:grid; grid-template-columns:repeat(4,auto); gap:2px 22px;
+    font-family:"IBM Plex Mono",monospace; font-variant-numeric:tabular-nums; font-size:.72rem;
+  }
+  .meta dt{color:var(--ink-soft);text-transform:uppercase;letter-spacing:.08em;}
+  .meta dd{margin:0 0 6px;font-weight:600;font-size:.85rem;}
+
+  /* ---- body layout ---- */
+  .layout{ display:grid; grid-template-columns:minmax(0,1fr) 300px; gap:18px; margin-top:18px; align-items:start; }
+  @media (max-width:860px){ .layout{grid-template-columns:1fr;} }
+
+  .panel{ border:1.5px solid var(--ink); background:var(--paper-surface); box-shadow:var(--shadow); }
+  .panel > .panel-head{
+    display:flex; align-items:center; justify-content:space-between;
+    padding:9px 14px; border-bottom:1.5px solid var(--ink);
+    font-family:"IBM Plex Mono",monospace; font-size:.7rem; letter-spacing:.1em;
+    text-transform:uppercase; color:var(--ink-soft);
+  }
+
+  /* ---- map canvas ---- */
+  .map-wrap{ position:relative; padding:18px; display:flex; justify-content:center; }
+  .map-frame{ position:relative; width:100%; max-width:592px; aspect-ratio:1/1; }
+  .map-frame canvas{ position:absolute; inset:0; width:100%; height:100%; display:block; image-rendering:crisp-edges; }
+  #peopleCanvas{ image-rendering:auto; }
+  .compass{
+    position:absolute; top:20px; right:20px; width:34px; height:34px;
+    font-family:"IBM Plex Mono",monospace; font-size:.65rem; color:var(--ink-soft);
+    display:flex; flex-direction:column; align-items:center; gap:2px; pointer-events:none; z-index:3;
+  }
+  .compass svg{width:14px;height:14px;}
+
+  .tooltip{
+    position:absolute; z-index:5; pointer-events:none;
+    background:var(--ink); color:var(--paper);
+    font-size:.72rem; line-height:1.5; padding:6px 9px; border-radius:3px;
+    transform:translate(-50%,-115%); white-space:nowrap; opacity:0; transition:opacity .1s;
+    font-family:"IBM Plex Sans KR",sans-serif;
+  }
+  .tooltip b{font-weight:700;}
+  .tooltip.show{opacity:1;}
+
+  /* ---- controls ---- */
+  .controls{ padding:12px 14px; display:flex; flex-direction:column; gap:8px; }
+  .controls .row{ display:flex; gap:8px; }
+  button.act{
+    flex:1; border:1.5px solid var(--ink); background:var(--btn-bg); color:var(--btn-fg);
+    font-family:"IBM Plex Sans KR",sans-serif; font-weight:600; font-size:.78rem;
+    padding:8px 10px; cursor:pointer; border-radius:3px;
+  }
+  button.act:active{ transform:translateY(1px); }
+  button.act.ghost{ background:transparent; color:var(--ink); }
+  button.act:focus-visible{ outline:2px solid var(--accent); outline-offset:2px; }
+  .controls .hint{ font-size:.7rem; color:var(--ink-soft); line-height:1.5; }
+
+  /* ---- roster / legend ---- */
+  .roster-list{ list-style:none; margin:0; padding:0; max-height:300px; overflow-y:auto; }
+  .roster-list li{
+    display:flex; align-items:center; gap:9px; padding:7px 14px;
+    border-bottom:1px solid var(--line); font-size:.82rem;
+  }
+  .roster-list li:last-child{border-bottom:none;}
+  .roster-list li:hover{background:var(--accent-soft);}
+  .chip{ width:11px;height:11px; border:1px solid var(--ink); border-radius:2px; flex:none; }
+  .chip.round{ border-radius:50%; }
+  .roster-list .name{font-weight:600;flex:1;min-width:0;}
+  .roster-list .cap{ font-family:"IBM Plex Mono",monospace; font-size:.72rem; color:var(--ink-soft); white-space:nowrap; }
+
+  .legend-grid{ display:grid; grid-template-columns:1fr 1fr; }
+  .legend-grid .item{ display:flex; align-items:center; gap:9px; padding:8px 14px; border-bottom:1px solid var(--line); font-size:.76rem; }
+  .legend-grid .item:nth-child(odd){border-right:1px solid var(--line);}
+  .sym{
+    width:20px;height:20px; flex:none; border:1.3px solid var(--ink);
+    display:flex;align-items:center;justify-content:center;
+    font-family:"IBM Plex Mono",monospace; font-weight:600; font-size:.7rem; border-radius:2px;
+  }
+
+  .status-list{ padding:2px 0; }
+  .status-list .row{
+    display:flex; align-items:center; gap:9px; padding:7px 14px;
+    border-bottom:1px solid var(--line); font-size:.78rem;
+  }
+  .status-list .row:last-child{border-bottom:none;}
+  .status-list .name{font-weight:600; width:64px; flex:none;}
+  .status-list .anim{ color:var(--ink-soft); font-family:"IBM Plex Mono",monospace; font-size:.68rem; }
+  .status-list .count{ margin-left:auto; font-family:"IBM Plex Mono",monospace; font-variant-numeric:tabular-nums; font-size:.72rem; color:var(--ink-soft); }
+
+  .rules{ padding:12px 14px; font-size:.76rem; color:var(--ink-soft); line-height:1.6; }
+  .rules b{color:var(--ink);}
+
+  footer{ margin-top:22px; font-family:"IBM Plex Mono",monospace; font-size:.68rem; color:var(--ink-soft); letter-spacing:.03em; text-align:center; }
+</style>
+
+<div class="sheet">
+  <div class="titleblock">
+    <div>
+      <h1>히든템 AI COMPANY</h1>
+      <div class="sub">오피스 평면도 · 실시간 직원 시뮬레이션</div>
+    </div>
+    <dl class="meta">
+      <div><dt>Staff</dt><dd>32명</dd></div>
+      <div><dt>Rooms</dt><dd>16</dd></div>
+      <div><dt>Pathing</dt><dd>A*</dd></div>
+      <div><dt>Sheet</dt><dd>A-02</dd></div>
+    </dl>
+  </div>
+
+  <div class="layout">
+    <div class="panel">
+      <div class="panel-head"><span>Floor Plan — Live</span><span id="hoverLabel">&nbsp;</span></div>
+      <div class="map-wrap">
+        <div class="map-frame">
+          <canvas id="mapCanvas"></canvas>
+          <canvas id="peopleCanvas"></canvas>
+          <div class="tooltip" id="tooltip"></div>
+          <div class="compass">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2v20M12 2l-4 6M12 2l4 6"/></svg>
+            N
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div style="display:flex;flex-direction:column;gap:18px;">
+      <div class="panel">
+        <div class="panel-head"><span>대표 지시창</span></div>
+        <div class="controls">
+          <div class="row">
+            <button class="act" id="btnMeeting">회의 소집</button>
+            <button class="act ghost" id="btnReturn">복귀</button>
+          </div>
+          <button class="act ghost" id="btnPause">일시정지</button>
+          <div class="hint">"회의 소집"을 누르면 팀장 12명이 각자 자리에서 A*로 경로를 찾아 회의실로 걸어가고, 서로 겹치는 칸은 피해서 돌아갑니다.</div>
+        </div>
+      </div>
+
+      <div class="panel">
+        <div class="panel-head"><span>직원 상태 5종</span></div>
+        <div class="status-list" id="statusList"></div>
+      </div>
+
+      <div class="panel">
+        <div class="panel-head"><span>Room Roster</span><span id="roomCount">—</span></div>
+        <ul class="roster-list" id="roster"></ul>
+      </div>
+
+      <div class="panel">
+        <div class="panel-head"><span>Tile Legend</span></div>
+        <div class="legend-grid" id="legend"></div>
+      </div>
+
+      <div class="panel">
+        <div class="panel-head"><span>Movement Rules</span></div>
+        <div class="rules">
+          <b>벽·책상·테이블·의자·소파</b>는 통행 불가.<br>
+          <b>다른 직원이 서 있는 칸</b>도 통행 불가 — A*가 실시간으로 우회 경로를 다시 계산합니다.
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <footer>HIDDEN-TEMP AI COMPANY FACILITIES — LIVE STAFF SIMULATION — REV.B — 2026.08.27</footer>
+</div>
+
+<script>
+const MAP = {
+ "width": 37,
+ "height": 37,
+ "grid": [
+  "#######...#######...#######...#######",
+  "#d.d.d#...#d.d.d#...#d.d.d#...#d.d.d#",
+  "#.....#...#.....#...#.....#...#.....#",
+  "#.....#...#.....#...#.....#...#.....#",
+  "#.....#...#.....#...#.....#...#.....#",
+  "#.....#...#.....#...#.....#...#.....#",
+  "###D###...###D###...###D###...###D###",
+  ".....................................",
+  ".....................................",
+  ".....................................",
+  "#######...#######...#######...#######",
+  "#d.d.d#...#d.d.d#...#d.d.d#...#d.d..#",
+  "#.....#...#.....#...#.....#...#.....#",
+  "#.....#...#.....#...#.....#...#.....#",
+  "#.....#...#.....#...#.....#...#.....#",
+  "#.....#...#.....#...#.....#...#.....#",
+  "###D###...###D###...###D###...###D###",
+  ".....................................",
+  ".....................................",
+  ".....................................",
+  "#######...#######...#######...#######",
+  "#d.d..#...#d.d.d#...#d.d..#...#d.d..#",
+  "#.....#...#.....#...#.....#...#.....#",
+  "#.....#...#.....#...#.....#...#.....#",
+  "#.....#...#.....#...#.....#...#.....#",
+  "#.....#...#.....#...#.....#...#.....#",
+  "###D###...###D###...###D###...###D###",
+  ".....................................",
+  ".....................................",
+  ".....................................",
+  "###D###...###D###...###D###...###D###",
+  "#.....#...#.....#...#.....#...#SS...#",
+  "#.....#...#..d..#...#.ccc.#...#..T..#",
+  "#.....#...#.....#...#.TTT.#...#....S#",
+  "#.....#...#.....#...#.ccc.#...#.....#",
+  "#.....#...#.....#...#.....#...#S....#",
+  "###E###...#######...#######...#######"
+ ],
+ "rooms": [
+  {
+   "id": "0-0",
+   "name": "시장조사팀",
+   "kind": "dept",
+   "color": "#f97316",
+   "top": 0,
+   "left": 0,
+   "size": 7,
+   "door": [
+    6,
+    3
+   ],
+   "ext_door": null,
+   "desks": [
+    [
+     1,
+     1
+    ],
+    [
+     1,
+     3
+    ],
+    [
+     1,
+     5
+    ]
+   ],
+   "capacity": 3
+  },
+  {
+   "id": "0-1",
+   "name": "브랜드 분석팀",
+   "kind": "dept",
+   "color": "#fb923c",
+   "top": 0,
+   "left": 10,
+   "size": 7,
+   "door": [
+    6,
+    13
+   ],
+   "ext_door": null,
+   "desks": [
+    [
+     1,
+     11
+    ],
+    [
+     1,
+     13
+    ],
+    [
+     1,
+     15
+    ]
+   ],
+   "capacity": 3
+  },
+  {
+   "id": "0-2",
+   "name": "기획 1팀",
+   "kind": "dept",
+   "color": "#facc15",
+   "top": 0,
+   "left": 20,
+   "size": 7,
+   "door": [
+    6,
+    23
+   ],
+   "ext_door": null,
+   "desks": [
+    [
+     1,
+     21
+    ],
+    [
+     1,
+     23
+    ],
+    [
+     1,
+     25
+    ]
+   ],
+   "capacity": 3
+  },
+  {
+   "id": "0-3",
+   "name": "검수팀",
+   "kind": "dept",
+   "color": "#a3e635",
+   "top": 0,
+   "left": 30,
+   "size": 7,
+   "door": [
+    6,
+    33
+   ],
+   "ext_door": null,
+   "desks": [
+    [
+     1,
+     31
+    ],
+    [
+     1,
+     33
+    ],
+    [
+     1,
+     35
+    ]
+   ],
+   "capacity": 3
+  },
+  {
+   "id": "1-0",
+   "name": "기획 2팀",
+   "kind": "dept",
+   "color": "#34d399",
+   "top": 10,
+   "left": 0,
+   "size": 7,
+   "door": [
+    16,
+    3
+   ],
+   "ext_door": null,
+   "desks": [
+    [
+     11,
+     1
+    ],
+    [
+     11,
+     3
+    ],
+    [
+     11,
+     5
+    ]
+   ],
+   "capacity": 3
+  },
+  {
+   "id": "1-1",
+   "name": "영상 제작팀",
+   "kind": "dept",
+   "color": "#22d3ee",
+   "top": 10,
+   "left": 10,
+   "size": 7,
+   "door": [
+    16,
+    13
+   ],
+   "ext_door": null,
+   "desks": [
+    [
+     11,
+     11
+    ],
+    [
+     11,
+     13
+    ],
+    [
+     11,
+     15
+    ]
+   ],
+   "capacity": 3
+  },
+  {
+   "id": "1-2",
+   "name": "이미지 제작팀",
+   "kind": "dept",
+   "color": "#60a5fa",
+   "top": 10,
+   "left": 20,
+   "size": 7,
+   "door": [
+    16,
+    23
+   ],
+   "ext_door": null,
+   "desks": [
+    [
+     11,
+     21
+    ],
+    [
+     11,
+     23
+    ],
+    [
+     11,
+     25
+    ]
+   ],
+   "capacity": 3
+  },
+  {
+   "id": "1-3",
+   "name": "협업 소통팀",
+   "kind": "dept",
+   "color": "#818cf8",
+   "top": 10,
+   "left": 30,
+   "size": 7,
+   "door": [
+    16,
+    33
+   ],
+   "ext_door": null,
+   "desks": [
+    [
+     11,
+     31
+    ],
+    [
+     11,
+     33
+    ]
+   ],
+   "capacity": 2
+  },
+  {
+   "id": "2-0",
+   "name": "정산팀",
+   "kind": "dept",
+   "color": "#a78bfa",
+   "top": 20,
+   "left": 0,
+   "size": 7,
+   "door": [
+    26,
+    3
+   ],
+   "ext_door": null,
+   "desks": [
+    [
+     21,
+     1
+    ],
+    [
+     21,
+     3
+    ]
+   ],
+   "capacity": 2
+  },
+  {
+   "id": "2-1",
+   "name": "성과리뷰팀",
+   "kind": "dept",
+   "color": "#f472b6",
+   "top": 20,
+   "left": 10,
+   "size": 7,
+   "door": [
+    26,
+    13
+   ],
+   "ext_door": null,
+   "desks": [
+    [
+     21,
+     11
+    ],
+    [
+     21,
+     13
+    ],
+    [
+     21,
+     15
+    ]
+   ],
+   "capacity": 3
+  },
+  {
+   "id": "2-2",
+   "name": "자동화 운영",
+   "kind": "dept",
+   "color": "#fb7185",
+   "top": 20,
+   "left": 20,
+   "size": 7,
+   "door": [
+    26,
+    23
+   ],
+   "ext_door": null,
+   "desks": [
+    [
+     21,
+     21
+    ],
+    [
+     21,
+     23
+    ]
+   ],
+   "capacity": 2
+  },
+  {
+   "id": "2-3",
+   "name": "비서실",
+   "kind": "dept",
+   "color": "#e879f9",
+   "top": 20,
+   "left": 30,
+   "size": 7,
+   "door": [
+    26,
+    33
+   ],
+   "ext_door": null,
+   "desks": [
+    [
+     21,
+     31
+    ],
+    [
+     21,
+     33
+    ]
+   ],
+   "capacity": 2
+  },
+  {
+   "id": "3-0",
+   "name": "출입구",
+   "kind": "entrance",
+   "color": "#94a3b8",
+   "top": 30,
+   "left": 0,
+   "size": 7,
+   "door": [
+    30,
+    3
+   ],
+   "ext_door": [
+    36,
+    3
+   ],
+   "desks": [],
+   "capacity": 0
+  },
+  {
+   "id": "3-1",
+   "name": "대표실",
+   "kind": "ceo",
+   "color": "#fbbf24",
+   "top": 30,
+   "left": 10,
+   "size": 7,
+   "door": [
+    30,
+    13
+   ],
+   "ext_door": null,
+   "desks": [
+    [
+     32,
+     13
+    ]
+   ],
+   "capacity": 1
+  },
+  {
+   "id": "3-2",
+   "name": "회의실",
+   "kind": "meeting",
+   "color": "#38bdf8",
+   "top": 30,
+   "left": 20,
+   "size": 7,
+   "door": [
+    30,
+    23
+   ],
+   "ext_door": null,
+   "desks": [],
+   "capacity": 0
+  },
+  {
+   "id": "3-3",
+   "name": "라운지",
+   "kind": "lounge",
+   "color": "#4ade80",
+   "top": 30,
+   "left": 30,
+   "size": 7,
+   "door": [
+    30,
+    33
+   ],
+   "ext_door": null,
+   "desks": [],
+   "capacity": 0
+  }
+ ],
+ "legend": {
+  ".": "floor (walkable)",
+  "#": "wall (blocked)",
+  "D": "interior door (walkable)",
+  "E": "exterior door / building entrance (walkable)",
+  "d": "desk (blocked, 1 employee seat)",
+  "T": "table (blocked)",
+  "c": "chair (blocked)",
+  "S": "sofa (blocked)"
+ }
+};
+
+/* ============ roster: desk order per room (leader first) ============ */
+const ROSTER = {
+  "0-0": ["강지원","한이슬","오하늘"],
+  "0-1": ["백서연","문가을","신다온"],
+  "0-2": ["유단비","조은결","임하람"],
+  "0-3": ["최도경","서연우","배소율"],
+  "1-0": ["정해온","김로운","안다혜"],
+  "1-1": ["남준서","하은채","표시우"],
+  "1-2": ["도경민","마루빈","공지안"],
+  "1-3": ["윤태오","구서아"],
+  "2-0": ["노한슬","진수아"],
+  "2-1": ["오세인","편가온","지민결"],
+  "2-2": ["설로하","우다인"],
+  "2-3": ["사공보람","천서율"],
+};
+
+const STATUS_DEF = {
+  "완료":     { color:"#2dd4bf", bubble:"완료했어요!",   anim:"앉기"  },
+  "진행 중":  { color:"#fbbf24", bubble:"일하는 중…",     anim:"타이핑" },
+  "승인 대기":{ color:"#db2777", bubble:"확인해주세요",   anim:"대화"  },
+  "연동 대기":{ color:"#a78bfa", bubble:"연결 기다려요",  anim:"앉기"  },
+  "대기":     { color:"#94a3b8", bubble:"업무 대기중",    anim:"앉기"  },
+};
+
+/* ============ static grid + A* ============ */
+const DIM = MAP.width;
+const BLOCK_CHARS = new Set(['#','d','T','c','S']);
+const staticBlocked = MAP.grid.map(row => row.split('').map(ch => BLOCK_CHARS.has(ch)));
+
+function inBounds(r,c){ return r>=0 && r<DIM && c>=0 && c<DIM; }
+function key(r,c){ return r+','+c; }
+
+function findPath(start, goal, dynBlocked){
+  const sK = key(start[0],start[1]), gK = key(goal[0],goal[1]);
+  if(sK===gK) return [start];
+  const open = new Map(); // key -> [r,c,f]
+  const gScore = new Map([[sK,0]]);
+  const cameFrom = new Map();
+  open.set(sK, [start[0],start[1], heuristic(start,goal)]);
+  const closed = new Set();
+  let guard = 0;
+  while(open.size){
+    if(++guard > 4000) return null;
+    let curK=null, curV=null;
+    for(const [k,v] of open){ if(!curV || v[2]<curV[2]){ curK=k; curV=v; } }
+    open.delete(curK);
+    if(curK===gK){
+      const path=[[curV[0],curV[1]]];
+      let ck=curK;
+      while(cameFrom.has(ck)){ ck=cameFrom.get(ck); const [r,c]=ck.split(',').map(Number); path.unshift([r,c]); }
+      return path;
+    }
+    closed.add(curK);
+    const [cr,cc]=[curV[0],curV[1]];
+    for(const [dr,dc] of [[1,0],[-1,0],[0,1],[0,-1]]){
+      const nr=cr+dr, nc=cc+dc;
+      if(!inBounds(nr,nc)) continue;
+      if(staticBlocked[nr][nc]) continue;
+      const nK=key(nr,nc);
+      if(closed.has(nK)) continue;
+      if(dynBlocked.has(nK) && nK!==gK) continue;
+      const tentative = gScore.get(curK)+1;
+      if(tentative < (gScore.has(nK)?gScore.get(nK):Infinity)){
+        cameFrom.set(nK, curK);
+        gScore.set(nK, tentative);
+        open.set(nK, [nr,nc, tentative+heuristic([nr,nc],goal)]);
+      }
+    }
+  }
+  return null;
+}
+function heuristic(a,b){ return Math.abs(a[0]-b[0])+Math.abs(a[1]-b[1]); }
+
+function getRoomFreeFloorTiles(room){
+  const tiles=[];
+  for(let r=room.top+1; r<=room.top+room.size-2; r++){
+    for(let c=room.left+1; c<=room.left+room.size-2; c++){
+      if(!staticBlocked[r][c]) tiles.push([r,c]);
+    }
+  }
+  return tiles;
+}
+
+/* ============ employees ============ */
+const employees = [];
+MAP.rooms.filter(r=>r.kind==='dept').forEach(room=>{
+  const names = ROSTER[room.id] || [];
+  room.desks.forEach((desk,i)=>{
+    const standPos = [desk[0]+1, desk[1]];
+    employees.push({
+      id: employees.length,
+      name: names[i] || `직원${employees.length}`,
+      team: room.name,
+      color: room.color,
+      isLead: i===0,
+      standPos,
+      pos: { x: standPos[1]+0.5, y: standPos[0]+0.5 },
+      path: null, pathIdx: 0, finalDest: standPos,
+      status: "대기", anim: "앉기", loc: "desk",
+      moving:false, replanCooldown:0, waitTimer:0, onArrive:null,
+      speed: 2.0 + Math.random()*0.5,
+      phase: Math.random()*Math.PI*2,
+    });
+  });
+});
+
+const MEETING_ROOM = MAP.rooms.find(r=>r.kind==='meeting');
+const LOUNGE_ROOM = MAP.rooms.find(r=>r.kind==='lounge');
+const MEETING_SLOTS = getRoomFreeFloorTiles(MEETING_ROOM);
+const LOUNGE_SLOTS = getRoomFreeFloorTiles(LOUNGE_ROOM).filter(([r,c]) => {
+  const ch = MAP.grid[r][c]; return ch==='.';
+});
+
+function tileOf(emp){ return [Math.round(emp.pos.y-0.5), Math.round(emp.pos.x-0.5)]; }
+
+function buildOccupancy(excludeId){
+  const occ = new Map();
+  for(const e of employees){
+    if(e.id===excludeId) continue;
+    const [r,c] = tileOf(e);
+    occ.set(key(r,c), e.id);
+  }
+  return occ;
+}
+
+function goTo(emp, destTile, arriveStatus, arriveAnim, onArrive){
+  emp.finalDest = destTile;
+  emp.pendingStatus = arriveStatus;
+  emp.pendingAnim = arriveAnim;
+  emp.onArrive = onArrive || null;
+  const start = tileOf(emp);
+  const occ = buildOccupancy(emp.id);
+  const path = findPath(start, destTile, occ);
+  if(path){
+    emp.path = path;
+    emp.pathIdx = (path[0][0]===start[0] && path[0][1]===start[1]) ? 1 : 0;
+    emp.anim = "걷기";
+    emp.moving = true;
+    emp.replanCooldown = 0;
+  } else {
+    emp.replanCooldown = 0.4; // try again shortly
+  }
+}
+
+function arrive(emp){
+  emp.path = null; emp.moving = false;
+  if(emp.pendingStatus) emp.status = emp.pendingStatus;
+  emp.anim = emp.pendingAnim || STATUS_DEF[emp.status].anim;
+  const cb = emp.onArrive; emp.onArrive = null;
+  if(cb) cb(emp);
+}
+
+function stepEmployee(emp, dt, occSnapshot){
+  if(emp.replanCooldown>0){ emp.replanCooldown -= dt; return; }
+  if(!emp.path || emp.pathIdx>=emp.path.length){ return; }
+  const target = emp.path[emp.pathIdx];
+  const tK = key(target[0],target[1]);
+  const occupant = occSnapshot.get(tK);
+  if(occupant!==undefined && occupant!==emp.id){
+    const start = tileOf(emp);
+    const dynOcc = buildOccupancy(emp.id);
+    const newPath = findPath(start, emp.finalDest, dynOcc);
+    if(newPath){ emp.path=newPath; emp.pathIdx = (newPath[0][0]===start[0]&&newPath[0][1]===start[1])?1:0; }
+    else { emp.replanCooldown = 0.4; }
+    return;
+  }
+  const tx=target[1]+0.5, ty=target[0]+0.5;
+  const dx=tx-emp.pos.x, dy=ty-emp.pos.y;
+  const dist=Math.hypot(dx,dy);
+  const step=emp.speed*dt;
+  if(dist<=step){
+    emp.pos.x=tx; emp.pos.y=ty; emp.pathIdx++;
+    if(emp.pathIdx>=emp.path.length) arrive(emp);
+  } else {
+    emp.pos.x += dx/dist*step;
+    emp.pos.y += dy/dist*step;
+  }
+}
+
+/* ---- initial scenario: TOP3 승인 대기 — 담당자 3명이 회의실에서 대기 ---- */
+function bootScenario(){
+  const weighted = ["진행 중","진행 중","진행 중","완료","완료","대기","대기","연동 대기"];
+  employees.forEach(e=>{
+    e.status = weighted[Math.floor(Math.random()*weighted.length)];
+    e.anim = STATUS_DEF[e.status].anim;
+  });
+  const approvalTeam = ["유단비","최도경","백서연"];
+  let slot=0;
+  employees.filter(e=>approvalTeam.includes(e.name)).forEach(e=>{
+    e.loc="meeting";
+    goTo(e, MEETING_SLOTS[slot++], "승인 대기", "대화");
+  });
+}
+bootScenario();
+
+/* ---- 대표 지시창 controls ---- */
+document.getElementById('btnMeeting').addEventListener('click', ()=>{
+  const leads = employees.filter(e=>e.isLead);
+  leads.forEach((e,i)=>{
+    e.loc="meeting";
+    goTo(e, MEETING_SLOTS[i % MEETING_SLOTS.length], "승인 대기", "대화");
+  });
+});
+document.getElementById('btnReturn').addEventListener('click', ()=>{
+  employees.filter(e=>e.loc==='meeting').forEach(e=>{
+    e.loc="desk";
+    const newStatus = Math.random()<0.6 ? "진행 중" : "완료";
+    goTo(e, e.standPos, newStatus, STATUS_DEF[newStatus].anim);
+  });
+});
+let paused=false;
+document.getElementById('btnPause').addEventListener('click', (ev)=>{
+  paused=!paused;
+  ev.target.textContent = paused ? "재생" : "일시정지";
+});
+
+/* ---- ambient life: occasional status change / lounge break ---- */
+let ambientTimer=3, errandTimer=5;
+function ambientTick(dt){
+  if(paused) return;
+  ambientTimer -= dt;
+  if(ambientTimer<=0){
+    ambientTimer = 4 + Math.random()*3;
+    const idle = employees.filter(e=>!e.moving && e.loc==='desk');
+    if(idle.length){
+      const e = idle[Math.floor(Math.random()*idle.length)];
+      const pool = ["완료","진행 중","연동 대기","대기"];
+      const ns = pool[Math.floor(Math.random()*pool.length)];
+      e.status = ns; e.anim = STATUS_DEF[ns].anim;
+    }
+  }
+  errandTimer -= dt;
+  if(errandTimer<=0){
+    errandTimer = 9 + Math.random()*6;
+    const candidates = employees.filter(e=>!e.moving && e.loc==='desk' && e.status==='대기');
+    if(candidates.length && LOUNGE_SLOTS.length){
+      const e = candidates[Math.floor(Math.random()*candidates.length)];
+      e.loc = "lounge";
+      const spot = LOUNGE_SLOTS[Math.floor(Math.random()*LOUNGE_SLOTS.length)];
+      goTo(e, spot, "대기", "앉기", (emp)=>{
+        emp.waitTimer = 3 + Math.random()*2;
+      });
+    }
+  }
+  employees.forEach(e=>{
+    if(e.loc==='lounge' && !e.moving && e.waitTimer>0){
+      e.waitTimer -= dt;
+      if(e.waitTimer<=0){
+        e.loc="desk";
+        goTo(e, e.standPos, "완료", "앉기");
+      }
+    }
+  });
+}
+
+/* ============ rendering ============ */
+const mapCanvas = document.getElementById('mapCanvas');
+const mapCtx = mapCanvas.getContext('2d');
+const peopleCanvas = document.getElementById('peopleCanvas');
+const peopleCtx = peopleCanvas.getContext('2d');
+let TILE = 16;
+let hoveredId = null;
+
+function cssVar(name){ return getComputedStyle(document.documentElement).getPropertyValue(name).trim(); }
+function hexToRgba(hex,a){
+  const h=hex.replace('#',''); const r=parseInt(h.substring(0,2),16),g=parseInt(h.substring(2,4),16),b=parseInt(h.substring(4,6),16);
+  return `rgba(${r},${g},${b},${a})`;
+}
+
+const ownerGrid = Array.from({length:DIM},()=>Array(DIM).fill(null));
+MAP.rooms.forEach(r=>{
+  for(let rr=r.top; rr<r.top+r.size; rr++) for(let cc=r.left; cc<r.left+r.size; cc++) ownerGrid[rr][cc]=r;
+});
+
+function setupCanvases(){
+  const dpr = window.devicePixelRatio || 1;
+  const displaySize = mapCanvas.parentElement.clientWidth;
+  TILE = displaySize / DIM;
+  [mapCanvas, peopleCanvas].forEach(cv=>{
+    cv.width = Math.round(displaySize*dpr);
+    cv.height = Math.round(displaySize*dpr);
+    cv.getContext('2d').setTransform(dpr,0,0,dpr,0,0);
+  });
+  drawStatic();
+}
+
+function drawStatic(){
+  const ink=cssVar('--wall'), paperSurface=cssVar('--paper-surface'), paperSurface2=cssVar('--paper-surface-2'),
+        door=cssVar('--door'), accent=cssVar('--accent'), inkText=cssVar('--ink');
+  const ctx=mapCtx;
+  ctx.clearRect(0,0,DIM*TILE,DIM*TILE);
+  ctx.fillStyle=paperSurface2; ctx.fillRect(0,0,DIM*TILE,DIM*TILE);
+
+  for(let r=0;r<DIM;r++){
+    const row=MAP.grid[r];
+    for(let c=0;c<DIM;c++){
+      const ch=row[c]; const x=c*TILE,y=r*TILE; const owner=ownerGrid[r][c];
+      let base = paperSurface2;
+      if(ch!=='#') base = owner ? hexToRgba(owner.color,0.16) : paperSurface;
+      ctx.fillStyle=base; ctx.fillRect(x,y,TILE,TILE);
+      if(ch==='#'){ ctx.fillStyle=ink; ctx.fillRect(x,y,TILE,TILE); }
+      else if(ch==='D'){ ctx.fillStyle=door; ctx.fillRect(x+TILE*0.12,y+TILE*0.12,TILE*0.76,TILE*0.76); }
+      else if(ch==='E'){
+        ctx.fillStyle=accent; ctx.fillRect(x,y,TILE,TILE);
+        ctx.strokeStyle=ink; ctx.lineWidth=Math.max(1,TILE*0.08);
+        ctx.strokeRect(x+TILE*0.1,y+TILE*0.1,TILE*0.8,TILE*0.8);
+      } else if(ch==='d'){
+        ctx.strokeStyle=ink; ctx.lineWidth=Math.max(1,TILE*0.09);
+        ctx.strokeRect(x+TILE*0.16,y+TILE*0.16,TILE*0.68,TILE*0.68);
+        ctx.beginPath(); ctx.moveTo(x+TILE*0.16,y+TILE*0.42); ctx.lineTo(x+TILE*0.84,y+TILE*0.42); ctx.stroke();
+      } else if(ch==='T'){
+        ctx.fillStyle=hexToRgba(inkText,0.55); ctx.fillRect(x+TILE*0.06,y+TILE*0.06,TILE*0.88,TILE*0.88);
+      } else if(ch==='c'){
+        ctx.strokeStyle=ink; ctx.lineWidth=Math.max(1,TILE*0.08);
+        ctx.strokeRect(x+TILE*0.28,y+TILE*0.28,TILE*0.44,TILE*0.44);
+      } else if(ch==='S'){
+        ctx.fillStyle=hexToRgba(inkText,0.4); roundRect(ctx,x+TILE*0.08,y+TILE*0.08,TILE*0.84,TILE*0.84,TILE*0.18); ctx.fill();
+      }
+    }
+  }
+  ctx.strokeStyle=cssVar('--line'); ctx.lineWidth=1;
+  for(let i=0;i<=DIM;i++){
+    ctx.beginPath();ctx.moveTo(i*TILE,0);ctx.lineTo(i*TILE,DIM*TILE);ctx.stroke();
+    ctx.beginPath();ctx.moveTo(0,i*TILE);ctx.lineTo(DIM*TILE,i*TILE);ctx.stroke();
+  }
+  ctx.font = `700 ${Math.max(7,TILE*0.5)}px "IBM Plex Sans KR", sans-serif`;
+  ctx.textAlign='center'; ctx.textBaseline='middle'; ctx.fillStyle=inkText;
+  MAP.rooms.forEach(r=>{
+    const cx=(r.left+r.size/2)*TILE, labelY=Math.max(r.top*TILE - TILE*0.35, TILE*0.6);
+    ctx.fillText(r.name, cx, labelY);
+  });
+}
+
+function roundRect(ctx,x,y,w,h,rad){
+  ctx.beginPath();
+  ctx.moveTo(x+rad,y); ctx.arcTo(x+w,y,x+w,y+h,rad); ctx.arcTo(x+w,y+h,x,y+h,rad);
+  ctx.arcTo(x,y+h,x,y,rad); ctx.arcTo(x,y,x+w,y,rad); ctx.closePath();
+}
+
+function drawPeople(t){
+  const ctx=peopleCtx, ink=cssVar('--ink'), accent=cssVar('--accent');
+  ctx.clearRect(0,0,DIM*TILE,DIM*TILE);
+
+  if(hoveredId!==null){
+    const room = MAP.rooms.find(r=>r.id===hoveredId);
+    if(room){
+      const x=room.left*TILE,y=room.top*TILE,s=room.size*TILE;
+      ctx.strokeStyle=accent; ctx.lineWidth=Math.max(2,TILE*0.22);
+      ctx.strokeRect(x+ctx.lineWidth/2,y+ctx.lineWidth/2,s-ctx.lineWidth,s-ctx.lineWidth);
+    }
+  }
+
+  const R = Math.max(4, TILE*0.33);
+  employees.forEach(e=>{
+    let px = e.pos.x*TILE, py = e.pos.y*TILE;
+    const bob = Math.sin(t*6 + e.phase);
+    if(e.anim==='걷기'){ py += bob*TILE*0.05; }
+    else { py += Math.sin(t*1.4+e.phase)*TILE*0.02; }
+
+    ctx.save();
+    ctx.translate(px,py);
+    if(e.anim==='앉기') ctx.scale(1,0.86);
+
+    ctx.beginPath(); ctx.arc(0,0,R,0,Math.PI*2);
+    ctx.fillStyle = e.color; ctx.fill();
+    ctx.lineWidth = Math.max(1,R*0.22);
+    ctx.strokeStyle = ink; ctx.stroke();
+
+    const sd = STATUS_DEF[e.status];
+    ctx.beginPath(); ctx.arc(0,0,R+ctx.lineWidth*1.6,0,Math.PI*2);
+    ctx.lineWidth = Math.max(1,R*0.3);
+    ctx.strokeStyle = sd.color; ctx.stroke();
+
+    ctx.restore();
+
+    // animation overlay glyphs
+    ctx.save();
+    ctx.translate(px,py);
+    if(e.anim==='타이핑'){
+      const on = Math.sin(t*10+e.phase) > 0;
+      ctx.fillStyle = on ? ink : 'transparent';
+      ctx.beginPath(); ctx.arc(-R*0.5,-R*1.7,R*0.22,0,Math.PI*2); ctx.fill();
+      ctx.fillStyle = !on ? ink : 'transparent';
+      ctx.beginPath(); ctx.arc(R*0.5,-R*1.7,R*0.22,0,Math.PI*2); ctx.fill();
+    } else if(e.anim==='대화'){
+      const s = 1 + Math.sin(t*5+e.phase)*0.12;
+      ctx.translate(0,-R*2.1); ctx.scale(s,s);
+      ctx.fillStyle = ink;
+      roundRect(ctx,-R*0.55,-R*0.4,R*1.1,R*0.75,R*0.25); ctx.fill();
+      ctx.beginPath(); ctx.moveTo(-R*0.1,R*0.32); ctx.lineTo(R*0.05,R*0.32); ctx.lineTo(-R*0.15,R*0.6); ctx.closePath(); ctx.fill();
+    } else if(e.anim==='걷기'){
+      ctx.strokeStyle=ink; ctx.lineWidth=Math.max(1,R*0.18);
+      const sw = Math.sin(t*9+e.phase)*R*0.35;
+      ctx.beginPath(); ctx.moveTo(-R*0.3,R*0.9); ctx.lineTo(-R*0.3+sw,R*1.4); ctx.stroke();
+      ctx.beginPath(); ctx.moveTo(R*0.3,R*0.9); ctx.lineTo(R*0.3-sw,R*1.4); ctx.stroke();
+    }
+    ctx.restore();
+  });
+}
+
+/* ---- hover tooltip ---- */
+const tooltip = document.getElementById('tooltip');
+peopleCanvas.addEventListener('mousemove', (ev)=>{
+  const rect = peopleCanvas.getBoundingClientRect();
+  const mx = (ev.clientX-rect.left)/rect.width*DIM;
+  const my = (ev.clientY-rect.top)/rect.height*DIM;
+  let hit = null;
+  for(const e of employees){
+    const dx=e.pos.x-mx, dy=e.pos.y-my;
+    if(dx*dx+dy*dy < 0.32*0.32){ hit=e; break; }
+  }
+  if(hit){
+    tooltip.innerHTML = `<b>${hit.name}</b> · ${hit.team}<br>${hit.status} — ${hit.anim}`;
+    tooltip.style.left = (ev.clientX-rect.left)+'px';
+    tooltip.style.top = (ev.clientY-rect.top)+'px';
+    tooltip.classList.add('show');
+    hoveredId = null;
+  } else {
+    tooltip.classList.remove('show');
+    let overRoom = null;
+    const gr = Math.floor(my), gc = Math.floor(mx);
+    if(gr>=0&&gr<DIM&&gc>=0&&gc<DIM) overRoom = ownerGrid[gr][gc];
+    hoveredId = overRoom ? overRoom.id : null;
+  }
+});
+peopleCanvas.addEventListener('mouseleave', ()=>{ tooltip.classList.remove('show'); hoveredId=null; });
+
+/* ---- static panels ---- */
+function buildRoster(){
+  const ul = document.getElementById('roster');
+  const KIND_LABEL = {dept:'부서', ceo:'대표실', meeting:'회의실', lounge:'라운지', entrance:'출입구'};
+  function capLabel(r){
+    if(r.kind==='dept'||r.kind==='ceo') return `책상 ${r.capacity}`;
+    if(r.kind==='meeting') return '테이블';
+    if(r.kind==='lounge') return '소파';
+    return '외부출입';
+  }
+  MAP.rooms.slice().sort((a,b)=>a.top-b.top||a.left-b.left).forEach(r=>{
+    const li=document.createElement('li');
+    li.innerHTML = `<span class="chip" style="background:${r.color}"></span><span class="name">${r.name}</span><span class="cap">${capLabel(r)}</span>`;
+    li.addEventListener('mouseenter', ()=>{ hoveredId=r.id; });
+    li.addEventListener('mouseleave', ()=>{ hoveredId=null; });
+    ul.appendChild(li);
+  });
+  document.getElementById('roomCount').textContent = MAP.rooms.length+'개';
+}
+function buildLegend(){
+  const grid=document.getElementById('legend');
+  [['█','벽 — 통행 불가'],['·','바닥 — 통행 가능'],['D','내부 문 — 통행 가능'],['E','출입구 — 외부 연결'],
+   ['▭','책상 — 직원 좌석'],['■','테이블 — 통행 불가'],['□','의자 — 통행 불가'],['●','소파 — 통행 불가']]
+   .forEach(([sym,label])=>{
+      const div=document.createElement('div'); div.className='item';
+      div.innerHTML = `<span class="sym">${sym}</span><span>${label}</span>`;
+      grid.appendChild(div);
+   });
+}
+function buildStatusList(){
+  const wrap=document.getElementById('statusList');
+  Object.entries(STATUS_DEF).forEach(([name,def])=>{
+    const row=document.createElement('div'); row.className='row';
+    row.innerHTML = `<span class="chip round" style="background:${def.color}"></span>
+      <span class="name">${name}</span><span class="anim">${def.anim}</span>
+      <span class="count" data-status="${name}">0</span>`;
+    wrap.appendChild(row);
+  });
+}
+function updateStatusCounts(){
+  const counts={};
+  employees.forEach(e=>{ counts[e.status]=(counts[e.status]||0)+1; });
+  document.querySelectorAll('.status-list .count').forEach(el=>{
+    el.textContent = (counts[el.dataset.status]||0)+'명';
+  });
+}
+
+buildRoster(); buildLegend(); buildStatusList();
+
+/* ============ main loop ============ */
+let lastT = performance.now();
+function loop(now){
+  const dt = Math.min(0.05, (now-lastT)/1000);
+  lastT = now;
+  if(!paused){
+    const occSnapshot = buildOccupancy(-1);
+    employees.forEach(e=> stepEmployee(e, dt, occSnapshot));
+    ambientTick(dt);
+  }
+  drawPeople(now/1000);
+  if(Math.floor(now/500) !== Math.floor((now-16)/500)) updateStatusCounts();
+  requestAnimationFrame(loop);
+}
+
+if(document.fonts && document.fonts.ready){ document.fonts.ready.then(setupCanvases); } else { setupCanvases(); }
+window.addEventListener('resize', setupCanvases);
+setTimeout(setupCanvases, 60);
+updateStatusCounts();
+requestAnimationFrame(loop);
+</script>
